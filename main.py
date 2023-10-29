@@ -35,9 +35,9 @@ async def extract_data(session, id):
     character_data = await fetch(session, f'https://swapi.dev/api/people/{id}/')
 
     film_tasks = [fetch(session, film_url) for film_url in character_data['films']]
-    species_tasks = [fetch(session, species_url) for species_url in character_data['species'] if character_data['species']]
-    starship_tasks = [fetch(session, starship_url) for starship_url in character_data['starships'] if character_data['starships']]
-    vehicle_tasks = [fetch(session, vehicle_url) for vehicle_url in character_data['vehicles'] if character_data['vehicles']]
+    species_tasks = [fetch(session, species_url) for species_url in character_data['species'] if 'name' in species_url]
+    starship_tasks = [fetch(session, starship_url) for starship_url in character_data['starships'] if 'name' in starship_url]
+    vehicle_tasks = [fetch(session, vehicle_url) for vehicle_url in character_data['vehicles'] if 'name' in vehicle_url]
 
     tasks = film_tasks
     if species_tasks: tasks += species_tasks
@@ -51,13 +51,12 @@ async def extract_data(session, id):
     starships = gathered_results[len(film_tasks)+len(species_tasks):len(film_tasks)+len(species_tasks)+len(starship_tasks)]
     vehicles = gathered_results[len(film_tasks)+len(species_tasks)+len(starship_tasks):]
     
-    character_data['films'] = ', '.join([film['title'] for film in films])
-    character_data['species'] = ', '.join([specie['name'] for specie in species]) if species else None
-    character_data['starships'] = ', '.join([starship['name'] for starship in starships]) if starships else None
-    character_data['vehicles'] = ', '.join([vehicle['name'] for vehicle in vehicles]) if vehicles else None
+    character_data['films'] = ', '.join([film['title'] for film in films if 'title' in film])
+    character_data['species'] = ', '.join([specie['name'] for specie in species if 'name' in specie]) if species else None
+    character_data['starships'] = ', '.join([starship['name'] for starship in starships if 'name' in starship]) if starships else None
+    character_data['vehicles'] = ', '.join([vehicle['name'] for vehicle in vehicles if 'name' in vehicle]) if vehicles else None
 
     return character_data
-
 
 
 async def load_data(session, id):
